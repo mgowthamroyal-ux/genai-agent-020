@@ -997,6 +997,39 @@
         font-size: 12px;
     }
 
+    .mobile-only {
+        display: none;
+    }
+
+    .sidebar-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .sidebar-close {
+        display: none;
+    }
+
+    .sidebar-backdrop {
+        display: none;
+    }
+
+    .header-main {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .header-heading {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
     /* Tablet Breakpoint */
     @media (max-width: 1120px) {
         :root {
@@ -1018,39 +1051,154 @@
 
     /* Mobile / Narrow Tablet Breakpoint */
     @media (max-width: 860px) {
-        aside {
-            position: static;
-            width: 100%;
-            height: auto;
-            border-right: 0;
-            border-bottom: 1px solid var(--line);
-            padding: 18px 16px;
+        .mobile-only {
+            display: inline-flex;
+        }
+
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            background: rgba(2, 6, 18, 0.62);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        body.nav-open {
+            overflow: hidden;
+        }
+
+        body.nav-open .sidebar-backdrop {
+            display: block;
+        }
+
+        aside#sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: min(295px, 85vw);
+            height: 100vh;
+            height: 100dvh;
+            z-index: 100;
+            border-right: 1px solid var(--line);
+            border-bottom: 0;
+            padding: 20px 16px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            transform: translateX(-108%);
+            visibility: hidden;
+            pointer-events: none;
+            transition: transform 0.24s ease, visibility 0.24s ease;
+        }
+
+        body.nav-open aside#sidebar {
+            transform: translateX(0);
+            visibility: visible;
+            pointer-events: auto;
+            box-shadow: 12px 0 38px rgba(0, 0, 0, 0.45);
+        }
+
+        .sidebar-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            min-height: 44px;
+            padding: 0;
+            border-radius: 10px;
+            background: var(--btn-sec-bg);
+            color: var(--btn-sec-text);
+            border: 1px solid var(--btn-sec-border);
+            font-size: 18px;
+            line-height: 1;
+            flex-shrink: 0;
         }
 
         aside > p {
-            margin: 6px 0 14px;
+            margin: 8px 0 16px;
         }
 
         aside nav {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-            gap: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        aside nav button {
+            min-height: 44px;
         }
 
         aside hr {
-            margin: 14px 0 10px;
+            margin: 16px 0 10px;
             padding-top: 0;
         }
 
         main {
+            position: relative;
+            z-index: 1;
             margin-left: 0;
             width: 100%;
-            padding: 20px 16px;
+            padding: 16px 14px 24px;
+        }
+
+        header {
+            align-items: flex-start;
+            gap: 10px;
+            padding-bottom: 14px;
+        }
+
+        .menu-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            min-height: 44px;
+            padding: 0;
+            border-radius: 10px;
+            background: var(--btn-sec-bg);
+            color: var(--btn-sec-text);
+            border: 1px solid var(--btn-sec-border);
+            flex-shrink: 0;
+            z-index: 5;
+        }
+
+        .mobile-pager {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            padding-top: 4px;
+        }
+
+        .mobile-pager button {
+            min-height: 42px;
+            padding: 8px 14px;
+            font-size: 13px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .mobile-page-pos {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            white-space: nowrap;
         }
 
         .hero {
-            min-height: 300px;
-            padding: 36px 18px;
+            min-height: 290px;
+            padding: 34px 16px;
+        }
+
+        .hero-actions button {
+            max-width: 100%;
+            white-space: normal;
         }
     }
 
@@ -1094,6 +1242,10 @@
     @media print {
         .ambient-world,
         aside,
+        .sidebar-backdrop,
+        .menu-toggle,
+        .sidebar-close,
+        .mobile-pager,
         button,
         #notice,
         .footer,
@@ -1129,9 +1281,13 @@
 </head>
 <body>
     <div class="ambient-world" aria-hidden="true"><i class="orb a"></i><i class="orb b"></i><i class="orb c"></i><i class="orb d"></i></div>
-    <aside>
-        <div class="brand"><span class="brandmark">PS</span>
-            <h2>Product Studio</h2>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()" aria-hidden="true"></div>
+    <aside id="sidebar" aria-label="Workspace navigation">
+        <div class="sidebar-head">
+            <div class="brand"><span class="brandmark">PS</span>
+                <h2>Product Studio</h2>
+            </div>
+            <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close navigation menu" onclick="closeSidebar()">✕</button>
         </div>
         <p>Marketing content workspace</p>
         <div class="workspace-label">WORKSPACE</div>
@@ -1143,10 +1299,20 @@
     </aside>
     <main>
         <header>
-            <div><small>WORKSPACE / <span id="crumb"></span></small>
-                <h1 id="title"></h1>
+            <div class="header-main">
+                <button type="button" class="menu-toggle mobile-only" id="menuToggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar" onclick="toggleSidebar()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div class="header-heading"><small>WORKSPACE / <span id="crumb"></span></small>
+                    <h1 id="title"></h1>
+                </div>
             </div>
             <span class="tag" id="mode">Local demo</span>
+            <div class="mobile-pager mobile-only" aria-label="Page navigation">
+                <button type="button" class="secondary" id="prevPage" aria-label="Previous page" onclick="stepPage(-1)">← Prev</button>
+                <span class="mobile-page-pos" id="mobilePagePos">1 / 9</span>
+                <button type="button" class="secondary" id="nextPage" aria-label="Next page" onclick="stepPage(1)">Next →</button>
+            </div>
         </header>
         <div id="notice" role="status"></div>
         <section id="view"></section>
@@ -1247,18 +1413,48 @@
                 ['Scheduled posts', db.calendar.length]
             ].map(([a, b]) => `<div class="card"><small>${a}</small><div class="metric">${b}</div></div>`).join('')}</div>`;
 
+        function openSidebar() {
+            document.body.classList.add('nav-open');
+            const btn = $('menuToggle');
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeSidebar() {
+            document.body.classList.remove('nav-open');
+            const btn = $('menuToggle');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleSidebar() {
+            if (document.body.classList.contains('nav-open')) closeSidebar();
+            else openSidebar();
+        }
+
+        function stepPage(delta) {
+            const idx = pages.indexOf(page);
+            const nextIdx = (idx + delta + pages.length) % pages.length;
+            go(pages[nextIdx]);
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeSidebar();
+        });
+
         function go(p) {
             page = p;
             edit = null;
             generatedMode = 'Manual';
             msg('');
+            closeSidebar();
             render();
             window.scrollTo(0, 0);
         }
 
         function render() {
+            const pageIdx = pages.indexOf(page);
             $('title').textContent = page === 'Dashboard' ? 'Workspace overview' : page;
             $('crumb').textContent = page;
+            if ($('mobilePagePos')) $('mobilePagePos').textContent = `${pageIdx + 1} / ${pages.length}`;
             $('nav').innerHTML = pages.map((p, i) =>
                 `<button type="button" aria-current="${p === page ? 'page' : 'false'}" class="${p === page ? 'active' : ''}" onclick="go('${p}')"><span class="navicon" aria-hidden="true">${icons[i]}</span>${p}</button>`
             ).join('');

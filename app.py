@@ -39,6 +39,51 @@ st.markdown(
             background: transparent;
         }
 
+        /* Hide Streamlit toolbar chrome (Share, Star, Edit, GitHub, Three-dot menu, Deploy) */
+        [data-testid="stToolbar"],
+        [data-testid="stToolbarActions"],
+        [data-testid="stToolbarActionButton"],
+        [data-testid="stShareButton"],
+        [data-testid="stFavoriteButton"],
+        [data-testid="stMainMenu"],
+        #MainMenu,
+        [data-testid="stAppDeployButton"],
+        .stDeployButton,
+        [data-testid="stDecoration"] {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        /* Hide Streamlit footer, branding badges, and Manage app button */
+        footer,
+        [data-testid="stFooter"],
+        [data-testid="manage-app-button"],
+        [class*="viewerBadge"],
+        a[href*="streamlit.io"] {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        /* Hide heading anchor link icons */
+        [data-testid="stHeaderActionElements"],
+        a.header-anchor,
+        [data-testid="stMarkdownContainer"] h1 a[href^="#"],
+        [data-testid="stMarkdownContainer"] h2 a[href^="#"],
+        [data-testid="stMarkdownContainer"] h3 a[href^="#"],
+        [data-testid="stHeadingWithActionElements"] a[href^="#"] {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        /* Keep sidebar collapse and expand controls visible and functional */
+        [data-testid="stSidebarCollapseButton"],
+        [data-testid="stExpandSidebarButton"],
+        [data-testid="collapsedControl"] {
+            display: flex !important;
+            visibility: visible !important;
+            color: #f8e39c !important;
+        }
+
         [data-testid="stSidebar"] {
             background: linear-gradient(180deg, #080f24 0%, #0d1836 100%);
             border-right: 1px solid rgba(212, 175, 55, 0.28);
@@ -271,7 +316,7 @@ if page == "Dashboard":
             """
         )
         st.info("Open Content Studio from the sidebar to generate marketing content.")
-        st.link_button("Open Aurora 3D Website", "http://127.0.0.1:8000")
+        st.link_button("Open Aurora 3D Website", "https://product-studio-aurora.onrender.com")
 
     if drafts:
         st.subheader("Recent Saved Drafts")

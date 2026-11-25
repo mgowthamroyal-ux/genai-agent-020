@@ -2159,6 +2159,114 @@
     #seoChecks p {
         margin: 8px 0
     }
+
+    /* Light Aurora theme: keep the animated artwork, replace dark surfaces. */
+    @media screen {
+        body:not(.dark) {
+            background: #fff;
+            --ink: #17243b;
+            --muted: #475569;
+            --line: #dbe4f0;
+            color-scheme: light;
+        }
+
+        body:not(.dark) .ambient-world {
+            background: radial-gradient(ellipse at 24% 38%, #87b5ff99, transparent 43%), radial-gradient(ellipse at 53% 63%, #78e5df99, transparent 45%), radial-gradient(ellipse at 97% 44%, #ffe08a99, transparent 47%), #fff;
+            filter: none;
+        }
+
+        body:not(.dark) aside {
+            background: #fffffff0;
+            color: var(--ink);
+            border-color: #fff;
+            box-shadow: 8px 0 32px #14294b12;
+        }
+
+        body:not(.dark) aside p,
+        body:not(.dark) .workspace-label,
+        body:not(.dark) nav button {
+            color: #475569;
+        }
+
+        body:not(.dark) nav button.active {
+            background: #dceaff;
+            color: #17449b;
+            box-shadow: none;
+        }
+
+        body:not(.dark) nav button:hover:not(.active),
+        body:not(.dark) .theme-toggle {
+            background: #edf3ff;
+            color: #244a9e;
+        }
+
+        body:not(.dark) .hero {
+            background: #ffffff38;
+            border-color: #fff;
+            color: var(--ink);
+        }
+
+        body:not(.dark) .hero h2,
+        body:not(.dark) .hero p,
+        body:not(.dark) .hero small {
+            color: #17243b;
+            text-shadow: none;
+        }
+
+        body:not(.dark) .hero .hero-secondary {
+            background: #ffffffb0;
+            color: #17243b;
+            border-color: #fff;
+        }
+
+        body:not(.dark) .card,
+        body:not(.dark) .dashboard-metrics>.card,
+        body:not(.dark) .product-card {
+            background: #ffffffe6;
+            color: var(--ink);
+            border-color: #fff;
+            box-shadow: 0 12px 30px #243c661a;
+        }
+
+        body:not(.dark) .metric {
+            color: #244a9e;
+        }
+
+        body:not(.dark) input,
+        body:not(.dark) select,
+        body:not(.dark) textarea {
+            background: #fff;
+            color: var(--ink);
+            border-color: #cbd5e1;
+        }
+
+        body:not(.dark) th,
+        body:not(.dark) tr:hover td {
+            background: #edf3ff;
+        }
+
+        body:not(.dark) td {
+            border-color: var(--line);
+        }
+
+        body:not(.dark) .tag,
+        body:not(.dark) button.secondary,
+        body:not(.dark) .brand-strip button,
+        body:not(.dark) #notice:not(:empty),
+        body:not(.dark) .product-info .actions button:not(:first-child) {
+            background: #edf3ff;
+            color: #244a9e;
+            border-color: #cbdafa;
+        }
+
+        body:not(.dark) .product-info .actions button.danger {
+            color: #a52c40;
+        }
+
+        body:not(.dark) .footer {
+            color: var(--muted);
+        }
+    }
 </style>
 
 <body>

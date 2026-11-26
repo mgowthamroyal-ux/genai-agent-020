@@ -130,14 +130,23 @@ st.markdown(
             visibility: hidden !important;
         }}
 
-        /* Hide Streamlit footer, branding badges, and Manage app button */
+        /* Hide Streamlit footer, floating branding badges, and Manage app controls (where rendered in app DOM) */
         footer,
         [data-testid="stFooter"],
         [data-testid="manage-app-button"],
+        [data-testid="manage-app-button"] *,
+        button[aria-label*="Manage app" i],
+        button[title*="Manage app" i],
+        [class*="manageApp" i],
         [class*="viewerBadge"],
-        a[href*="streamlit.io"] {{
+        [class*="profileContainer"],
+        [class*="profilePreview"],
+        a[href*="streamlit.io"],
+        a[href*="share.streamlit.io"] {{
             display: none !important;
             visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }}
 
         /* Hide heading anchor link icons */

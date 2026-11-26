@@ -16,6 +16,7 @@ load_dotenv(BASE_DIR / ".env")
 API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
 MODEL = (os.getenv("GEMINI_MODEL") or "gemini-3.5-flash-lite").strip()
 DB_PATH = BASE_DIR / "studio.db"
+PAGES = ["Dashboard", "Content Studio", "Saved Content", "Settings"]
 
 st.set_page_config(
     page_title="Product Studio",
@@ -24,23 +25,98 @@ st.set_page_config(
 )
 
 # ==========================================
-# NAVY & GOLD THEME STYLING
+# SESSION STATE & THEME
 # ==========================================
 
+if "draft" not in st.session_state:
+    st.session_state["draft"] = ""
+
+if "active_page" not in st.session_state:
+    st.session_state["active_page"] = "Dashboard"
+
+if "theme_mode" not in st.session_state:
+    st.session_state["theme_mode"] = "Dark"
+
+
+def _sync_from_sidebar() -> None:
+    st.session_state["active_page"] = st.session_state["sidebar_nav"]
+
+
+def _set_page(target: str) -> None:
+    st.session_state["active_page"] = target
+    st.session_state["sidebar_nav"] = target
+
+
+# ==========================================
+# NAVY & GOLD / LIGHT THEME STYLING
+# ==========================================
+
+is_dark = st.session_state["theme_mode"] == "Dark"
+
+if is_dark:
+    app_bg = "radial-gradient(circle at top right, #182952 0%, #0b132b 55%, #070d1e 100%)"
+    ink = "#f8fafc"
+    muted = "#cbd5e1"
+    heading_color = "#f8e39c"
+    gold_accent = "#f5c542"
+    sidebar_bg = "linear-gradient(180deg, #080f24 0%, #0d1836 100%)"
+    sidebar_text = "#f1f5f9"
+    card_bg = "rgba(15, 25, 54, 0.86)"
+    metric_bg = "rgba(15, 25, 54, 0.82)"
+    border_gold = "rgba(212, 175, 55, 0.30)"
+    input_bg = "#0b142c"
+    sec_btn_bg = "rgba(22, 36, 74, 0.90)"
+    sec_btn_text = "#f8e39c"
+    nav_ctrl_bg = "rgba(15, 25, 54, 0.95)"
+    nav_ctrl_color = "#f8e39c"
+    nav_ctrl_border = "rgba(212, 175, 55, 0.65)"
+    success_bg, success_fg, success_border = "#0b3b24", "#bbf7d0", "#22c55e"
+    info_bg, info_fg, info_border = "#0f294a", "#dbeafe", "#38bdf8"
+    warn_bg, warn_fg, warn_border = "#3b2806", "#fef3c7", "#f59e0b"
+    err_bg, err_fg, err_border = "#45121b", "#fecaca", "#f87171"
+else:
+    app_bg = "radial-gradient(circle at top right, #e6eefc 0%, #f5f7fb 55%, #eef2f9 100%)"
+    ink = "#0f1c3f"
+    muted = "#475569"
+    heading_color = "#0f1c3f"
+    gold_accent = "#b48312"
+    sidebar_bg = "linear-gradient(180deg, #ffffff 0%, #f1f5fb 100%)"
+    sidebar_text = "#0f1c3f"
+    card_bg = "rgba(255, 255, 255, 0.94)"
+    metric_bg = "rgba(255, 255, 255, 0.94)"
+    border_gold = "rgba(180, 131, 18, 0.35)"
+    input_bg = "#ffffff"
+    sec_btn_bg = "#edf2ff"
+    sec_btn_text = "#0f1c3f"
+    nav_ctrl_bg = "rgba(255, 255, 255, 0.98)"
+    nav_ctrl_color = "#0f1c3f"
+    nav_ctrl_border = "rgba(180, 131, 18, 0.65)"
+    success_bg, success_fg, success_border = "#dcfce7", "#14532d", "#16a34a"
+    info_bg, info_fg, info_border = "#dbeafe", "#1e3a8a", "#2563eb"
+    warn_bg, warn_fg, warn_border = "#fef3c7", "#78350f", "#d97706"
+    err_bg, err_fg, err_border = "#fee2e2", "#7f1d1d", "#dc2626"
+
 st.markdown(
-    """
+    f"""
     <style>
-        .stApp {
-            background: radial-gradient(circle at top right, #182952 0%, #0b132b 55%, #070d1e 100%);
-            color: #f8fafc;
-        }
+        .stApp {{
+            background: {app_bg};
+            color: {ink};
+            overflow-x: hidden;
+        }}
 
-        [data-testid="stHeader"] {
-            background: transparent;
-        }
+        [data-testid="stHeader"] {{
+            background: transparent !important;
+            z-index: 999 !important;
+            pointer-events: auto !important;
+        }}
 
-        /* Hide Streamlit toolbar chrome (Share, Star, Edit, GitHub, Three-dot menu, Deploy) */
-        [data-testid="stToolbar"],
+        /* Keep stToolbar container visible because stExpandSidebarButton lives inside it,
+           and hide only the unwanted toolbar action items */
+        [data-testid="stToolbar"] {{
+            background: transparent !important;
+        }}
+
         [data-testid="stToolbarActions"],
         [data-testid="stToolbarActionButton"],
         [data-testid="stShareButton"],
@@ -49,20 +125,20 @@ st.markdown(
         #MainMenu,
         [data-testid="stAppDeployButton"],
         .stDeployButton,
-        [data-testid="stDecoration"] {
+        [data-testid="stDecoration"] {{
             display: none !important;
             visibility: hidden !important;
-        }
+        }}
 
         /* Hide Streamlit footer, branding badges, and Manage app button */
         footer,
         [data-testid="stFooter"],
         [data-testid="manage-app-button"],
         [class*="viewerBadge"],
-        a[href*="streamlit.io"] {
+        a[href*="streamlit.io"] {{
             display: none !important;
             visibility: hidden !important;
-        }
+        }}
 
         /* Hide heading anchor link icons */
         [data-testid="stHeaderActionElements"],
@@ -70,102 +146,286 @@ st.markdown(
         [data-testid="stMarkdownContainer"] h1 a[href^="#"],
         [data-testid="stMarkdownContainer"] h2 a[href^="#"],
         [data-testid="stMarkdownContainer"] h3 a[href^="#"],
-        [data-testid="stHeadingWithActionElements"] a[href^="#"] {
+        [data-testid="stHeadingWithActionElements"] a[href^="#"] {{
             display: none !important;
             visibility: hidden !important;
-        }
+        }}
 
-        /* Keep sidebar collapse and expand controls visible and functional */
-        [data-testid="stSidebarCollapseButton"],
+        /* Restore & highlight sidebar expand and collapse arrow buttons on desktop & mobile touch */
+        [data-testid="stSidebarHeader"],
         [data-testid="stExpandSidebarButton"],
-        [data-testid="collapsedControl"] {
-            display: flex !important;
+        [data-testid="stExpandSidebarButton"] button,
+        [data-testid="stSidebarCollapseButton"],
+        [data-testid="stSidebarCollapseButton"] button,
+        [data-testid="collapsedControl"],
+        [data-testid="collapsedControl"] button {{
             visibility: visible !important;
-            color: #f8e39c !important;
-        }
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }}
 
-        [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #080f24 0%, #0d1836 100%);
-            border-right: 1px solid rgba(212, 175, 55, 0.28);
-        }
+        [data-testid="stExpandSidebarButton"],
+        [data-testid="stSidebarCollapseButton"] button,
+        [data-testid="collapsedControl"] button {{
+            display: inline-flex !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            border-radius: 10px !important;
+            background: {nav_ctrl_bg} !important;
+            border: 1px solid {nav_ctrl_border} !important;
+            color: {nav_ctrl_color} !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22) !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }}
 
-        [data-testid="stSidebar"] * {
-            color: #f1f5f9 !important;
-        }
+        [data-testid="stExpandSidebarButton"] *,
+        [data-testid="stSidebarCollapseButton"] *,
+        [data-testid="collapsedControl"] * {{
+            color: {nav_ctrl_color} !important;
+            fill: currentColor !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }}
 
-        h1, h2, h3 {
-            color: #f8e39c !important;
+        [data-testid="stSidebar"] {{
+            background: {sidebar_bg};
+            border-right: 1px solid {border_gold};
+            padding-top: env(safe-area-inset-top, 0px);
+        }}
+
+        [data-testid="stSidebar"] h1,
+        [data-testid="stSidebar"] h2,
+        [data-testid="stSidebar"] h3,
+        [data-testid="stSidebar"] label,
+        [data-testid="stSidebar"] .stRadio *,
+        [data-testid="stSidebar"] [data-testid="stCaptionContainer"] *,
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] * {{
+            color: {sidebar_text} !important;
+        }}
+
+        h1, h2, h3 {{
+            color: {heading_color} !important;
             letter-spacing: -0.02em;
-        }
+            overflow-wrap: anywhere;
+        }}
 
-        .stMarkdown p, .stMarkdown li, label, .stCaption {
-            color: #e2e8f0 !important;
-        }
+        .stMarkdown p, .stMarkdown li, label, .stCaption {{
+            color: {ink} !important;
+            overflow-wrap: anywhere;
+        }}
 
-        [data-testid="stVerticalBlockBorderWrapper"] {
-            background: rgba(15, 25, 54, 0.86);
-            border: 1px solid rgba(212, 175, 55, 0.30) !important;
+        /* High-contrast Alert / Status Boxes (Success, Info, Warning, Error) in Dark & Light modes */
+        .stApp [data-testid="stAlert"]:has([data-testid="stAlertContentSuccess"]),
+        .stApp [data-testid="stAlertContainer"]:has([data-testid="stAlertContentSuccess"]),
+        [data-testid="stSidebar"] [data-testid="stAlert"]:has([data-testid="stAlertContentSuccess"]) {{
+            background-color: {success_bg} !important;
+            border: 1px solid {success_border} !important;
+            border-radius: 10px !important;
+        }}
+        .stApp [data-testid="stAlert"]:has([data-testid="stAlertContentSuccess"]) *,
+        .stApp [data-testid="stAlertContainer"]:has([data-testid="stAlertContentSuccess"]) *,
+        [data-testid="stSidebar"] [data-testid="stAlert"]:has([data-testid="stAlertContentSuccess"]) * {{
+            color: {success_fg} !important;
+            fill: currentColor !important;
+        }}
+
+        .stApp [data-testid="stAlert"]:has([data-testid="stAlertContentInfo"]),
+        .stApp [data-testid="stAlertContainer"]:has([data-testid="stAlertContentInfo"]),
+        [data-testid="stSidebar"] [data-testid="stAlert"]:has([data-testid="stAlertContentInfo"]) {{
+            background-color: {info_bg} !important;
+            border: 1px solid {info_border} !important;
+            border-radius: 10px !important;
+        }}
+        .stApp [data-testid="stAlert"]:has([data-testid="stAlertContentInfo"]) *,
+        .stApp [data-testid="stAlertContainer"]:has([data-testid="stAlertContentInfo"]) *,
+        [data-testid="stSidebar"] [data-testid="stAlert"]:has([data-testid="stAlertContentInfo"]) * {{
+            color: {info_fg} !important;
+            fill: currentColor !important;
+        }}
+
+        .stApp [data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]),
+        .stApp [data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]),
+        [data-testid="stSidebar"] [data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]) {{
+            background-color: {warn_bg} !important;
+            border: 1px solid {warn_border} !important;
+            border-radius: 10px !important;
+        }}
+        .stApp [data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]) *,
+        .stApp [data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]) *,
+        [data-testid="stSidebar"] [data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]) * {{
+            color: {warn_fg} !important;
+            fill: currentColor !important;
+        }}
+
+        .stApp [data-testid="stAlert"]:has([data-testid="stAlertContentError"]),
+        .stApp [data-testid="stAlertContainer"]:has([data-testid="stAlertContentError"]),
+        [data-testid="stSidebar"] [data-testid="stAlert"]:has([data-testid="stAlertContentError"]) {{
+            background-color: {err_bg} !important;
+            border: 1px solid {err_border} !important;
+            border-radius: 10px !important;
+        }}
+        .stApp [data-testid="stAlert"]:has([data-testid="stAlertContentError"]) *,
+        .stApp [data-testid="stAlertContainer"]:has([data-testid="stAlertContentError"]) *,
+        [data-testid="stSidebar"] [data-testid="stAlert"]:has([data-testid="stAlertContentError"]) * {{
+            color: {err_fg} !important;
+            fill: currentColor !important;
+        }}
+
+        [data-testid="stVerticalBlockBorderWrapper"] {{
+            background: {card_bg};
+            border: 1px solid {border_gold} !important;
             border-radius: 14px !important;
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
-        }
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+        }}
 
-        [data-testid="stMetric"] {
-            background: rgba(15, 25, 54, 0.82);
-            border: 1px solid rgba(212, 175, 55, 0.28);
+        [data-testid="stMetric"] {{
+            background: {metric_bg};
+            border: 1px solid {border_gold};
             border-radius: 12px;
             padding: 14px 16px;
-        }
+        }}
 
-        [data-testid="stMetricLabel"] {
-            color: #cbd5e1 !important;
-        }
+        [data-testid="stMetricLabel"] {{
+            color: {muted} !important;
+        }}
 
-        [data-testid="stMetricValue"] {
-            color: #f5c542 !important;
+        [data-testid="stMetricValue"] {{
+            color: {gold_accent} !important;
             font-weight: 800 !important;
-        }
+        }}
 
-        input, textarea, select, [data-baseweb="select"] > div, [data-baseweb="input"] > div {
-            background-color: #0b142c !important;
-            color: #f8fafc !important;
-            border-color: rgba(212, 175, 55, 0.32) !important;
-        }
+        input, textarea, select, [data-baseweb="select"] > div, [data-baseweb="input"] > div {{
+            background-color: {input_bg} !important;
+            color: {ink} !important;
+            border-color: {border_gold} !important;
+        }}
 
-        .stButton > button[kind="primary"] {
+        .stButton > button[kind="primary"] {{
             background: linear-gradient(135deg, #f5c542, #d4af37) !important;
             color: #0b132b !important;
             border: none !important;
             font-weight: 700 !important;
-        }
+        }}
 
         .stButton > button[kind="secondary"],
-        .stDownloadButton > button {
-            background: rgba(22, 36, 74, 0.9) !important;
-            color: #f8e39c !important;
-            border: 1px solid rgba(212, 175, 55, 0.38) !important;
+        .stDownloadButton > button {{
+            background: {sec_btn_bg} !important;
+            color: {sec_btn_text} !important;
+            border: 1px solid {border_gold} !important;
             font-weight: 600 !important;
-        }
+        }}
 
         .stButton > button:hover,
-        .stDownloadButton > button:hover {
-            filter: brightness(1.08);
-        }
+        .stDownloadButton > button:hover {{
+            filter: brightness(1.06);
+        }}
 
-        [data-testid="stExpander"] {
-            background: rgba(15, 25, 54, 0.85);
-            border: 1px solid rgba(212, 175, 55, 0.28) !important;
+        [data-testid="stExpander"] {{
+            background: {card_bg};
+            border: 1px solid {border_gold} !important;
             border-radius: 12px !important;
-        }
+        }}
 
-        .footer {
+        .footer {{
             margin-top: 40px;
             padding: 18px 0 6px 0;
-            border-top: 1px solid rgba(212, 175, 55, 0.25);
+            border-top: 1px solid {border_gold};
             text-align: center;
-            color: #cbd5e1;
+            color: {muted};
             font-size: 13px;
             line-height: 1.7;
-        }
+        }}
+
+        /* Hide mobile quick-nav bar on desktop so desktop design stays unchanged */
+        @media (min-width: 769px) {{
+            [data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .mobile-nav-anchor) {{
+                display: none !important;
+            }}
+        }}
+
+        /* Mobile responsiveness (360px, 390px, 430px, <= 768px) */
+        @media (max-width: 768px) {{
+            [data-testid="stHeader"] {{
+                height: calc(env(safe-area-inset-top, 0px) + 3.25rem) !important;
+                min-height: 3.25rem !important;
+            }}
+
+            [data-testid="stMainBlockContainer"] {{
+                padding-left: 0.85rem !important;
+                padding-right: 0.85rem !important;
+                padding-top: calc(env(safe-area-inset-top, 0px) + 3.25rem) !important;
+                padding-bottom: 1.5rem !important;
+                max-width: 100% !important;
+            }}
+
+            [data-testid="stSidebar"] {{
+                z-index: 1000005 !important;
+            }}
+
+            [data-testid="stExpandSidebarButton"] {{
+                position: fixed !important;
+                top: calc(env(safe-area-inset-top, 0px) + 0.4rem) !important;
+                left: calc(env(safe-area-inset-left, 0px) + 0.75rem) !important;
+                display: inline-flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                z-index: 1000000 !important;
+            }}
+
+            [data-testid="stSidebarCollapseButton"],
+            [data-testid="stSidebarCollapseButton"] button {{
+                display: inline-flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                z-index: 1000010 !important;
+            }}
+
+            [data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .mobile-nav-anchor) {{
+                margin-bottom: 0.25rem !important;
+                gap: 0.45rem !important;
+            }}
+
+            .stButton > button {{
+                white-space: normal !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                line-height: 1.2 !important;
+                min-height: 44px !important;
+                padding: 0.45rem 0.65rem !important;
+            }}
+
+            h1 {{
+                font-size: clamp(1.4rem, 5.8vw, 1.9rem) !important;
+                line-height: 1.2 !important;
+                margin-top: 0.25rem !important;
+                padding-top: 0.25rem !important;
+            }}
+
+            h2 {{
+                font-size: clamp(1.15rem, 4.8vw, 1.4rem) !important;
+            }}
+
+            [data-testid="stHorizontalBlock"] {{
+                flex-wrap: wrap !important;
+                gap: 0.55rem !important;
+            }}
+
+            [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {{
+                flex: 1 1 calc(50% - 0.45rem) !important;
+                min-width: calc(50% - 0.45rem) !important;
+            }}
+
+            [data-testid="stMetric"] {{
+                padding: 12px !important;
+            }}
+
+            [data-testid="stMetricValue"] {{
+                font-size: clamp(1.2rem, 5vw, 1.65rem) !important;
+            }}
+        }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -263,21 +523,30 @@ Return only the requested marketing content.
 
 
 # ==========================================
-# SESSION STATE & SIDEBAR NAVIGATION
+# SIDEBAR & MOBILE QUICK NAVIGATION
 # ==========================================
-
-if "draft" not in st.session_state:
-    st.session_state["draft"] = ""
 
 st.sidebar.title("💎 Product Studio")
 st.sidebar.caption("AI Marketing Workspace")
 
-page = st.sidebar.radio(
+if "sidebar_nav" not in st.session_state:
+    st.session_state["sidebar_nav"] = st.session_state["active_page"]
+
+st.sidebar.radio(
     "Workspace",
-    ["Dashboard", "Content Studio", "Saved Content", "Settings"],
+    PAGES,
+    key="sidebar_nav",
+    on_change=_sync_from_sidebar,
 )
 
 st.sidebar.divider()
+
+theme_choice = st.sidebar.radio(
+    "Theme",
+    ["Dark", "Light"],
+    key="theme_mode",
+    horizontal=True,
+)
 
 if API_KEY:
     st.sidebar.success("Gemini API configured")
@@ -286,6 +555,23 @@ else:
 
 st.sidebar.caption(f"Model: {MODEL}")
 st.sidebar.caption("GENAI-AGENT-020 · INR ₹")
+
+# Visible mobile quick-navigation bar (hidden on desktop via CSS)
+with st.container():
+    st.markdown('<div class="mobile-nav-anchor"></div>', unsafe_allow_html=True)
+    m_cols = st.columns(4)
+    for idx, label in enumerate(PAGES):
+        with m_cols[idx]:
+            st.button(
+                label,
+                key=f"mob_nav_{label}",
+                type="primary" if st.session_state["active_page"] == label else "secondary",
+                width="stretch",
+                on_click=_set_page,
+                args=(label,),
+            )
+
+page = st.session_state["active_page"]
 
 
 # ==========================================
@@ -315,7 +601,7 @@ if page == "Dashboard":
             and FAQs with Indian Rupee (INR) pricing and SQLite draft storage.
             """
         )
-        st.info("Open Content Studio from the sidebar to generate marketing content.")
+        st.info("Open Content Studio from the sidebar or navigation menu to generate marketing content.")
         st.link_button("Open Aurora 3D Website", "https://product-studio-aurora.onrender.com")
 
     if drafts:
@@ -460,7 +746,7 @@ elif page == "Settings":
             st.write("Language: Python")
             st.write("Database: SQLite")
             st.write("Currency: INR ₹")
-            st.write("Theme: Navy & Gold")
+            st.write(f"Theme: Navy & Gold ({st.session_state['theme_mode']})")
             st.write("Application Icon: 💎")
 
     st.divider()

@@ -290,20 +290,51 @@ st.markdown(
             box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
         }}
 
+        [data-testid="stMain"] {{
+            container-type: inline-size;
+            container-name: stmain;
+        }}
+
         [data-testid="stMetric"] {{
             background: {metric_bg};
             border: 1px solid {border_gold};
             border-radius: 12px;
             padding: 14px 16px;
+            height: 100%;
         }}
 
-        [data-testid="stMetricLabel"] {{
+        [data-testid="stMetricLabel"],
+        [data-testid="stMetricLabel"] > div,
+        [data-testid="stMetricLabel"] p {{
             color: {muted} !important;
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            line-height: 1.3 !important;
         }}
 
-        [data-testid="stMetricValue"] {{
+        [data-testid="stMetricValue"],
+        [data-testid="stMetricValue"] > div {{
             color: {gold_accent} !important;
             font-weight: 800 !important;
+            font-size: clamp(1.25rem, 2.4vw, 2rem) !important;
+            line-height: 1.2 !important;
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }}
+
+        /* Switch 4-column metric rows to 2x2 whenever available main width is insufficient */
+        @container stmain (max-width: 820px) {{
+            [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) {{
+                flex-wrap: wrap !important;
+                gap: 0.75rem !important;
+            }}
+
+            [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) > [data-testid="stColumn"] {{
+                flex: 1 1 calc(50% - 0.5rem) !important;
+                min-width: calc(50% - 0.5rem) !important;
+            }}
         }}
 
         input, textarea, select, [data-baseweb="select"] > div, [data-baseweb="input"] > div {{
